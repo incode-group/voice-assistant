@@ -1,0 +1,1 @@
+export type { BookingSlot, BookingRequest } from './types'
