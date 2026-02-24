@@ -1,36 +1,69 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Incode Group Voice Assistant
+
+AI-powered voice assistant for the Incode Group website. Helps visitors learn about services and book discovery calls via voice.
+
+## Tech Stack
+
+- **Next.js 15** — App Router, API Routes
+- **Vapi AI** — voice assistant, speech-to-text, Google Calendar integration
+- **Zustand** — client state management
+- **Tailwind CSS** — styling
+
+## Features
+
+- Voice conversation with AI assistant
+- Knowledge base from Incode Group website (auto-synced)
+- Discovery call booking via Google Calendar
+- Timezone-aware scheduling
 
 ## Getting Started
-
-First, run the development server:
-
 ```bash
+npm install
+cp .env.example .env.local
+# Fill in your credentials in .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment Variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable | Description |
+|---|---|
+| `NEXT_PUBLIC_VAPI_PUBLIC_KEY` | Vapi public key from Dashboard |
+| `VAPI_PRIVATE_KEY` | Vapi private key for server API calls |
+| `NEXT_PUBLIC_VAPI_ASSISTANT_ID` | Vapi assistant ID |
+| `SYNC_SECRET` | Secret for /api/sync-knowledge endpoint |
+| `SCRAPING_ROBOT_TOKEN` | Scraping Robot API token for KB sync |
+| `NEXT_PUBLIC_APP_URL` | Production URL |
 
-## Learn More
+## Project Structure
+```
+src/
+├── app/                  # Next.js App Router pages and API routes
+├── entities/             # Core types (message, etc.)
+├── features/
+│   ├── booking/          # Email input, booking store
+│   ├── chat-transcript/  # Transcript panel and store
+│   └── voice-agent/      # Vapi session, voice controls, orb
+├── shared/
+│   ├── config/           # Constants
+│   └── lib/              # Vapi client, scraper, cron
+└── widgets/              # AssistantLayout
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Knowledge Base Sync
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The assistant's knowledge base is auto-synced from the Incode Group website on a weekly schedule via cron. Manual sync:
+```bash
+curl -X POST https://your-domain.com/api/sync-knowledge \
+  -H "x-sync-secret: YOUR_SYNC_SECRET"
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Deployment
+```bash
+git pull
+npm install
+npm run build
+pm2 restart voice-assistant
+```
