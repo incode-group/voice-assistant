@@ -7,43 +7,39 @@ import { useVoiceAgentStore } from "./voiceStore";
 import { useTranscriptStore } from "@/features/chat-transcript/model/transcriptStore";
 import type { VapiMessage } from "@/entities/message";
 import { useBookingStore } from "@/features/booking";
+import { useCallHistoryStore } from "@/features/call-history";
+import { generateCallTitle } from "@/features/call-history/api/vapiCalls";
 
-interface VapiToolCall {
-  id: string;
-  function: { name: string; arguments: string };
-}
+import {
+  AnyVapiMessage,
+  VapiToolCallMessage,
+  VapiFunctionCallMessage,
+} from "@/types/vapi";
 
-interface VapiToolCallMessage {
-  type: "tool-calls";
-  toolCallList: VapiToolCall[];
-}
-
-interface VapiFunctionCallMessage {
-  type: "function-call";
-  functionCall: { name: string; parameters: unknown };
-}
-
-type AnyVapiMessage =
-  | VapiMessage
-  | VapiToolCallMessage
-  | VapiFunctionCallMessage;
+const openEmailInput = () => {
+  useBookingStore.getState().openEmailInput();
+};
 
 const TOOL_HANDLERS: Record<string, () => void> = {
-  showEmailInput: () => {
-    console.log("[Vapi] showEmailInput triggered");
-    useBookingStore.getState().openEmailInput();
-  },
+  showEmailInput: openEmailInput,
+  "showEmailInput-dev": openEmailInput,
   openBooking: () => {
-    console.log("[Vapi] openBooking triggered");
     useBookingStore.getState().open();
-  }
+  },
 };
 
 const BOOKING_KEYWORDS = ["book", "schedule", "calendar", "discovery call"];
 
 export function useVapiSession() {
-  const { setAgentState, setAudioLevel, setError, setMuted, isMuted, reset } =
-    useVoiceAgentStore();
+  const {
+    setAgentState,
+    setActiveCallId,
+    setAudioLevel,
+    setError,
+    setMuted,
+    isMuted,
+    reset,
+  } = useVoiceAgentStore();
 
   const { addMessage, updateLastPartial, setBookingIntent, clearTranscript } =
     useTranscriptStore();
@@ -66,12 +62,41 @@ export function useVapiSession() {
   useEffect(() => {
     const vapi = getVapiClient();
 
-    const onCallStart = () => setAgentState("listening");
+    const onCallStart = (call?: { id?: string }) => {
+      setAgentState("listening");
 
-    const onCallEnd = () => {
+      if (call?.id) {
+        setActiveCallId(call.id);
+      }
+    };
+
+    const onCallEnd = async () => {
+      const messages = [...useTranscriptStore.getState().messages];
+      const callId = useVoiceAgentStore.getState().activeCallId;
+
+      const savedMessages = messages.filter((m) => m.isFinal);
+      const savedCallId = callId;
+
       reset();
       clearTranscript();
       useBookingStore.getState().reset();
+
+      if (savedCallId && savedMessages.length > 0) {
+        try {
+          const title = await generateCallTitle(savedMessages);
+          const preview =
+            savedMessages.find((m) => m.role === "user")?.text ?? "";
+
+          useCallHistoryStore.getState().addCall({
+            id: savedCallId,
+            title,
+            date: new Date().toISOString(),
+            preview,
+          });
+        } catch (err) {
+          console.error("[CallEnd] Failed to save history:", err);
+        }
+      }
     };
 
     const onSpeechStart = () => setAgentState("speaking");
@@ -159,25 +184,21 @@ export function useVapiSession() {
         timeZone: clientTimezone,
       });
 
-      console.log("[Vapi] Starting with timezone:", clientTimezone);
-
-      await vapi.start(VAPI_ASSISTANT_ID, {
-        variableValues: {
-          clientTimezone,
-          now,
-        },
+      const call = await vapi.start(VAPI_ASSISTANT_ID, {
+        variableValues: { clientTimezone, now },
       });
+
+      if (call?.id) {
+        setActiveCallId(call.id);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to start call");
     }
-  }, [setAgentState, setError]);
+  }, [setAgentState, setError, setActiveCallId]);
 
   const stopCall = useCallback(() => {
     getVapiClient().stop();
-    reset();
-    clearTranscript();
-    useBookingStore.getState().reset();
-  }, [reset, clearTranscript]);
+  }, []);
 
   const toggleMute = useCallback(() => {
     const next = !isMutedRef.current;

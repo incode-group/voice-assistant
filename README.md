@@ -33,6 +33,8 @@ Open [http://localhost:3000](http://localhost:3000).
 | `NEXT_PUBLIC_VAPI_PUBLIC_KEY` | Vapi public key from Dashboard |
 | `VAPI_PRIVATE_KEY` | Vapi private key for server API calls |
 | `NEXT_PUBLIC_VAPI_ASSISTANT_ID` | Vapi assistant ID |
+| `GEMINI_API_KEY` | API key for Google Gemini (title generation) |
+| `NEXT_PUBLIC_CALENDLY_URL` | Calendly booking page URL |
 | `SYNC_SECRET` | Secret for /api/sync-knowledge endpoint |
 | `SCRAPING_ROBOT_TOKEN` | Scraping Robot API token for KB sync |
 | `NEXT_PUBLIC_APP_URL` | Production URL |

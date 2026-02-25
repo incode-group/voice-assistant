@@ -25,13 +25,13 @@ export function TranscriptPanel() {
   }, [messages, userScrolled])
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-[#171d26]">
       <div className="flex items-center justify-between
                        px-4 py-3 border-b border-white/8 shrink-0">
         <div className="flex items-center gap-2">
-          <div className="w-1.5 h-1.5 rounded-full bg-[#72b63b]" />
-          <span className="text-xs uppercase tracking-widest text-[#eeeeef]/40">
-            Transcript
+          <div className="w-1.5 h-1.5 rounded-full bg-[#72b63b] animate-pulse" />
+          <span className="text-xs uppercase tracking-widest text-[#eeeeef]/40 font-semibold">
+            Live Transcript
           </span>
         </div>
 
@@ -57,9 +57,7 @@ export function TranscriptPanel() {
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto px-4 py-4 space-y-4
-                   scrollbar-thin scrollbar-thumb-[#232b38]
-                   scrollbar-track-transparent"
+        className="flex-1 overflow-y-auto px-4 py-4 space-y-4 scrollbar-thin"
       >
         <AnimatePresence initial={false}>
           {messages.length === 0 ? (
@@ -67,11 +65,15 @@ export function TranscriptPanel() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="flex flex-col items-center justify-center
-                         h-full text-center text-sm pt-12 gap-2"
+                         h-full text-center text-sm pt-12 gap-3"
             >
-              <span className="text-2xl">💬</span>
-              <p className="text-[#eeeeef]/30">Conversation will appear here</p>
-              <p className="text-xs text-[#eeeeef]/20">Press Start to begin</p>
+              <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-lg">
+                💬
+              </div>
+              <div>
+                <p className="text-[#eeeeef]/30">Conversation will appear here</p>
+                <p className="text-xs text-[#eeeeef]/20">Press Start to begin</p>
+              </div>
             </motion.div>
           ) : (
             messages.map((msg) => (

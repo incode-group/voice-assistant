@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { VapiPayload } from "@/types/vapi";
+import { SHOW_EMAIL_TOOLS } from "@/shared/config/constants";
 
 function extractToolCall(body: VapiPayload) {
   const toolCall = body?.message?.toolCallList?.[0];
@@ -29,7 +30,7 @@ export async function POST(req: NextRequest) {
   console.log("[VapiTools]", toolName);
 
   try {
-    if (toolName === "showEmailInput") {
+    if (toolName && (SHOW_EMAIL_TOOLS as readonly string[]).includes(toolName)) {
       return respond(toolCallId, "Email input field is now shown in the chat.");
     }
 

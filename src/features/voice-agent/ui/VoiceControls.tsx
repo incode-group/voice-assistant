@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useVapiSession } from '../model/useVapiSession'
 import { useVoiceAgentStore } from '../model/voiceStore'
 
@@ -14,6 +14,7 @@ export function VoiceControls() {
   return (
     <div className="flex items-center gap-3">
       <motion.button
+        layout
         whileTap={{ scale: 0.95 }}
         onClick={isIdle ? startCall : stopCall}
         className={`
@@ -35,28 +36,32 @@ export function VoiceControls() {
         {isIdle ? 'Start' : agentState === 'connecting' ? 'Connecting...' : 'End call'}
       </motion.button>
 
-      <AnimatedMuteButton
-        visible={isActive}
-        isMuted={isMuted}
-        onToggle={toggleMute}
-      />
+      <AnimatePresence>
+        {isActive && (
+          <AnimatedMuteButton
+            key="mute-btn"
+            isMuted={isMuted}
+            onToggle={toggleMute}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }
 
 function AnimatedMuteButton({
-  visible, isMuted, onToggle,
+  isMuted, onToggle,
 }: Readonly<{
-  visible: boolean
   isMuted: boolean
   onToggle: () => void
 }>) {
   return (
     <motion.div
-      initial={false}
-      animate={{ opacity: visible ? 1 : 0, scale: visible ? 1 : 0.8 }}
+      initial={{ opacity: 0, scale: 0.8, width: 0 }}
+      animate={{ opacity: 1, scale: 1, width: 'auto' }}
+      exit={{ opacity: 0, scale: 0.8, width: 0 }}
       transition={{ duration: 0.2 }}
-      style={{ pointerEvents: visible ? 'auto' : 'none' }}
+      className="overflow-hidden"
     >
       <motion.button
         whileTap={{ scale: 0.95 }}

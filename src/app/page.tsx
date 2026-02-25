@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation'
+import { AssistantLayout } from '@/widgets/assistant-layout'
 
 export default function Home() {
-  redirect('/assistant')
+  return <AssistantLayout />
 }
