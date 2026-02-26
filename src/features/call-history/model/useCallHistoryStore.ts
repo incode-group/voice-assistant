@@ -11,6 +11,7 @@ interface CallHistoryStore {
 
   addCall: (call: CallRecord) => void
   selectCall: (id: string | null) => void
+  deleteCall: (id: string) => void
   clearHistory: () => void
   setHasHydrated: (value: boolean) => void
 }
@@ -28,6 +29,12 @@ export const useCallHistoryStore = create<CallHistoryStore>()(
         })),
 
       selectCall: (id) => set({ selectedCallId: id }),
+
+      deleteCall: (id) =>
+        set((state) => ({
+          calls: state.calls.filter((c) => c.id !== id),
+          selectedCallId: state.selectedCallId === id ? null : state.selectedCallId,
+        })),
 
       clearHistory: () => set({ calls: [], selectedCallId: null }),
 

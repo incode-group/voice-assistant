@@ -8,8 +8,8 @@ interface CallHistorySidebarProps {
   onSelect?: () => void;
 }
 
-export function CallHistorySidebar({ onSelect }: CallHistorySidebarProps) {
-  const { calls, selectedCallId, selectCall } = useCallHistoryStore();
+export function CallHistorySidebar({ onSelect }: Readonly<CallHistorySidebarProps>) {
+  const { calls, selectedCallId, selectCall, deleteCall } = useCallHistoryStore();
 
   if (calls.length === 0) return null;
 
@@ -18,8 +18,14 @@ export function CallHistorySidebar({ onSelect }: CallHistorySidebarProps) {
     if (onSelect) onSelect();
   };
 
+  const handleDelete = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    deleteCall(id);
+  };
+
   const handleNewChat = () => {
     selectCall(null);
+    if (onSelect) onSelect();
   };
 
   return (
@@ -28,7 +34,7 @@ export function CallHistorySidebar({ onSelect }: CallHistorySidebarProps) {
                       border-r border-white/8 bg-[#171d26]"
     >
       {/* Header */}
-       <div className="h-14 px-4 border-b border-white/8 flex items-center justify-between gap-2 shrink-0">
+      <div className="h-14 px-4 border-b border-white/8 flex items-center justify-between gap-2 shrink-0">
         <h2 className="text-xs uppercase tracking-widest text-[#eeeeef]/40 font-semibold whitespace-nowrap leading-none">
           Call History
         </h2>
@@ -36,7 +42,7 @@ export function CallHistorySidebar({ onSelect }: CallHistorySidebarProps) {
           <button
             onClick={handleNewChat}
             className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest
-                       text-[#72b63b] hover:text-[#8fcf52] transition-colors whitespace-nowrap leading-none"
+                       text-[#72b63b] hover:text-[#8fcf52] transition-colors whitespace-nowrap leading-none cursor-pointer"
           >
             <Plus size={14} className="shrink-0" />
             New chat
@@ -52,6 +58,7 @@ export function CallHistorySidebar({ onSelect }: CallHistorySidebarProps) {
             call={call}
             isSelected={selectedCallId === call.id}
             onClick={() => handleCallSelect(call.id)}
+            onDelete={(e) => handleDelete(e, call.id)}
           />
         ))}
       </div>

@@ -8,7 +8,7 @@ import {
   VoiceControls,
   useVoiceAgentStore,
 } from "@/features/voice-agent";
-import { TranscriptPanel } from "@/features/chat-transcript";
+import { TranscriptPanel, useTranscriptStore } from "@/features/chat-transcript";
 import { BookingButton, BookingModal, EmailInput } from "@/features/booking";
 import {
   CallHistorySidebar,
@@ -19,6 +19,7 @@ import {
 export function AssistantLayout() {
   const { agentState, errorMessage } = useVoiceAgentStore();
   const { calls, selectedCallId, _hasHydrated } = useCallHistoryStore();
+  const { messages } = useTranscriptStore();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const hasHistory = _hasHydrated && calls.length > 0;
@@ -26,25 +27,21 @@ export function AssistantLayout() {
 
   return (
     <div className="flex flex-col h-screen bg-[#171d26] text-white overflow-hidden">
+
       {/* Header */}
-      <header
-        className="shrink-0 h-18 flex items-center justify-between gap-2
-                         px-3 sm:px-4 md:px-8 border-b border-white/8 relative z-50 bg-[#171d26]"
-      >
+      <header className="shrink-0 h-18 flex items-center justify-between gap-2
+                         px-3 sm:px-4 md:px-8 border-b border-white/8 relative z-50 bg-[#171d26]">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           {hasHistory && (
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="lg:hidden p-1.5 sm:p-2 -ml-1 sm:-ml-2 hover:bg-white/5 rounded-lg transition-colors text-[#eeeeef]/60 hover:text-[#eeeeef] shrink-0"
+              className="lg:hidden p-1.5 sm:p-2 -ml-1 sm:-ml-2 hover:bg-white/5 rounded-lg transition-colors text-[#eeeeef]/60 hover:text-[#eeeeef] shrink-0 cursor-pointer"
             >
               <History size={18} className="sm:w-5 sm:h-5" />
             </button>
           )}
-
-          <div
-            className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-[#72b63b] flex items-center
-                           justify-center text-[10px] sm:text-xs font-bold select-none text-white shrink-0"
-          >
+          <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-[#72b63b] flex items-center
+                          justify-center text-[10px] sm:text-xs font-bold select-none text-white shrink-0">
             I
           </div>
           <div className="min-w-0 flex flex-col justify-center">
@@ -69,12 +66,11 @@ export function AssistantLayout() {
                   hidden md:flex items-center gap-1.5
                   text-xs uppercase tracking-widest px-3 py-1.5
                   rounded-full border
-                  ${
-                    agentState === "speaking"
-                      ? "text-[#72b63b] border-[#72b63b]/30 bg-[#72b63b]/10"
-                      : agentState === "listening"
-                        ? "text-blue-400 border-blue-400/30 bg-blue-400/10"
-                        : "text-[#eeeeef]/40 border-white/10"
+                  ${agentState === "speaking"
+                    ? "text-[#72b63b] border-[#72b63b]/30 bg-[#72b63b]/10"
+                    : agentState === "listening"
+                      ? "text-blue-400 border-blue-400/30 bg-blue-400/10"
+                      : "text-[#eeeeef]/40 border-white/10"
                   }
                 `}
               >
@@ -103,63 +99,61 @@ export function AssistantLayout() {
 
         {/* Sidebar Wrapper */}
         {hasHistory && (
-          <div
-            className={`
-              fixed inset-y-0 left-0 z-40 w-64 pt-18 lg:pt-0 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 lg:z-10 bg-[#171d26]
-              ${isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-            `}
-          >
+          <div className={`
+            fixed inset-y-0 left-0 z-40 w-64 pt-18 lg:pt-0
+            transform transition-transform duration-300 ease-in-out
+            lg:relative lg:translate-x-0 lg:z-10 bg-[#171d26]
+            ${isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+          `}>
             <CallHistorySidebar onSelect={() => setIsSidebarOpen(false)} />
           </div>
         )}
 
+        {/* History view */}
         {_hasHydrated && isViewingHistory && (
           <main className="flex flex-1 overflow-hidden relative">
             <HistoryTranscriptView />
           </main>
         )}
 
+        {/* Voice assistant view */}
         {_hasHydrated && !isViewingHistory && (
-          <>
-            <main className="flex flex-1 overflow-hidden relative">
-              {/* Left Column (Orb & Controls) */}
-              <div
-                className="flex flex-1 flex-col items-center justify-center gap-8
-                             px-6 lg:border-r border-white/8 min-w-0"
-              >
-                <div className="flex flex-col items-center justify-center w-full max-w-lg mx-auto lg:flex-1">
-                  <VoiceOrb size={280} />
+          <main className="flex flex-1 overflow-hidden relative flex-col lg:flex-row">
+            {/* Left Column (Orb & Controls) */}
+            <div className="flex flex-1 flex-col items-center justify-center
+                            px-6 lg:border-r border-white/8 min-w-0">
+              <div className="flex flex-col items-center justify-center w-full max-w-lg mx-auto lg:flex-1">
+                <VoiceOrb size={280} />
 
-                  <div className="mt-16 w-full flex justify-center">
-                    <VoiceControls />
-                  </div>
-
-                  <AnimatePresence>
-                    {agentState === "error" && errorMessage && (
-                      <motion.p
-                        initial={{ opacity: 0, y: -8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -8 }}
-                        className="mt-4 text-xs text-red-400 text-center max-w-xs"
-                      >
-                        {errorMessage}
-                      </motion.p>
-                    )}
-                  </AnimatePresence>
+                <div className="mt-16 w-full flex justify-center">
+                  <VoiceControls />
                 </div>
-              </div>
 
-              {/* Right Column */}
-              <div className="hidden lg:flex flex-col lg:w-85 xl:w-2/5 shrink-0 min-w-[320px] overflow-hidden">
-                <TranscriptPanel />
+                <AnimatePresence>
+                  {agentState === "error" && errorMessage && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      className="mt-4 text-xs text-red-400 text-center max-w-xs"
+                    >
+                      {errorMessage}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
               </div>
-            </main>
+            </div>
 
-            {/* Mobile/Tablet Transcript */}
-            <div className="lg:hidden shrink-0 h-[35vh] md:h-[30vh] border-t border-white/8 bg-[#171d26] overflow-hidden">
+            {/* Desktop transcript */}
+            <div className="hidden lg:flex flex-col lg:w-85 xl:w-2/5 shrink-0 min-w-[320px] overflow-hidden">
               <TranscriptPanel />
             </div>
-          </>
+
+            {/* Mobile/Tablet Transcript */}
+            <div className="lg:hidden shrink-0 h-[40vh] border-t border-white/8 bg-[#171d26] overflow-hidden">
+              <TranscriptPanel />
+            </div>
+          </main>
         )}
       </div>
 
