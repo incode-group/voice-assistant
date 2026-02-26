@@ -1,3 +1,6 @@
 export { useCallHistoryStore } from './model/useCallHistoryStore'
 export { CallHistorySidebar } from './ui/CallHistorySidebar'
+export { HistoryTranscriptView } from './ui/HistoryTranscriptView'
 export { generateCallTitle } from './api/vapiCalls'
+export { normalizeHistoryMessages } from './api/normalizeMessages'
+export {TranscriptSkeleton} from './ui/TranscriptSkeleton'

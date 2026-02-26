@@ -7,9 +7,12 @@ const MAX_CALLS = 10
 interface CallHistoryStore {
   calls: CallRecord[]
   selectedCallId: string | null
+  _hasHydrated: boolean
+
   addCall: (call: CallRecord) => void
   selectCall: (id: string | null) => void
   clearHistory: () => void
+  setHasHydrated: (value: boolean) => void
 }
 
 export const useCallHistoryStore = create<CallHistoryStore>()(
@@ -17,6 +20,7 @@ export const useCallHistoryStore = create<CallHistoryStore>()(
     (set) => ({
       calls: [],
       selectedCallId: null,
+      _hasHydrated: false,
 
       addCall: (call) =>
         set((state) => ({
@@ -26,9 +30,14 @@ export const useCallHistoryStore = create<CallHistoryStore>()(
       selectCall: (id) => set({ selectedCallId: id }),
 
       clearHistory: () => set({ calls: [], selectedCallId: null }),
+
+      setHasHydrated: (value) => set({ _hasHydrated: value }),
     }),
     {
-      name: 'incode-call-history', // localStorage key
+      name: 'incode-call-history',
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true)
+      },
     }
   )
 )

@@ -28,8 +28,6 @@ const TOOL_HANDLERS: Record<string, () => void> = {
   },
 };
 
-const BOOKING_KEYWORDS = ["book", "schedule", "calendar", "discovery call"];
-
 export function useVapiSession() {
   const {
     setAgentState,
@@ -41,10 +39,11 @@ export function useVapiSession() {
     reset,
   } = useVoiceAgentStore();
 
-  const { addMessage, updateLastPartial, setBookingIntent, clearTranscript } =
+  const { addMessage, updateLastPartial, clearTranscript } =
     useTranscriptStore();
 
   const callSavedRef = useRef(false);
+  const callStartTimeRef = useRef<number | null>(null);
   const isMutedRef = useRef(isMuted);
   useEffect(() => {
     isMutedRef.current = isMuted;
@@ -66,6 +65,7 @@ export function useVapiSession() {
     const onCallStart = (call?: { id?: string }) => {
       setAgentState("listening");
 
+      callStartTimeRef.current = Date.now();
       callSavedRef.current = false;
       if (call?.id) {
         setActiveCallId(call.id);
@@ -141,14 +141,10 @@ export function useVapiSession() {
               text: message.transcript,
               timestamp: new Date(),
               isFinal: true,
+              secondsFromStart: callStartTimeRef.current
+                ? (Date.now() - callStartTimeRef.current) / 1000
+                : undefined,
             });
-          }
-
-          if (message.role === "assistant") {
-            const text = message.transcript.toLowerCase();
-            if (BOOKING_KEYWORDS.some((kw) => text.includes(kw))) {
-              setBookingIntent(true);
-            }
           }
           break;
         }

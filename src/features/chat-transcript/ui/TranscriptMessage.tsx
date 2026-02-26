@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import type { TranscriptMessage as TMessage } from '@/entities/message'
+import { formatSeconds } from '@/shared/lib/formatTime'
 
 interface Props {
   message: TMessage
@@ -19,6 +20,11 @@ export function TranscriptMessage({ message }: Readonly<Props>) {
     >
       <span className="text-[10px] uppercase tracking-widest text-[#eeeeef]/40 px-1">
         {isAssistant ? 'Assistant' : 'You'}
+        {message.secondsFromStart != null && (
+          <span className="ml-1.5 text-[#eeeeef]/20 normal-case tracking-normal">
+            {formatSeconds(message.secondsFromStart)}
+          </span>
+        )}
       </span>
       <div
         className={`

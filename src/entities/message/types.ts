@@ -8,6 +8,7 @@ export interface TranscriptMessage {
   text: string
   timestamp: Date
   isFinal: boolean
+  secondsFromStart?: number
 }
 
 export interface VapiMessage {
@@ -15,6 +16,7 @@ export interface VapiMessage {
   role?: MessageRole
   transcript?: string
   transcriptType?: 'partial' | 'final'
+  secondsFromStart?: number
   functionCall?: {
     name: string
     parameters: Record<string, unknown>
