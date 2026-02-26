@@ -15,7 +15,6 @@ export async function syncVapiKnowledgeBase(content: string): Promise<string> {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${VAPI_PRIVATE_KEY}` },
     })
-    console.log('[VapiSync] Old file deleted:', oldFile.id)
   }
 
   const formData = new FormData()
@@ -27,7 +26,6 @@ export async function syncVapiKnowledgeBase(content: string): Promise<string> {
     body: formData,
   })
   const newFile = await uploadResponse.json()
-  console.log('[VapiSync] New file uploaded:', newFile.id)
 
   const assistantResponse = await fetch(
     `https://api.vapi.ai/assistant/${VAPI_ASSISTANT_ID}`,
@@ -68,6 +66,5 @@ export async function syncVapiKnowledgeBase(content: string): Promise<string> {
     throw new Error(`Failed to update assistant: ${err}`)
   }
 
-  console.log('[VapiSync] ✓ Assistant updated with new fileIds:', updatedFileIds)
   return newFile.id
 }

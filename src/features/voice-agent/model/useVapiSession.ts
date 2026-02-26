@@ -44,6 +44,7 @@ export function useVapiSession() {
   const { addMessage, updateLastPartial, setBookingIntent, clearTranscript } =
     useTranscriptStore();
 
+  const callSavedRef = useRef(false);
   const isMutedRef = useRef(isMuted);
   useEffect(() => {
     isMutedRef.current = isMuted;
@@ -65,37 +66,57 @@ export function useVapiSession() {
     const onCallStart = (call?: { id?: string }) => {
       setAgentState("listening");
 
+      callSavedRef.current = false;
       if (call?.id) {
         setActiveCallId(call.id);
       }
     };
 
     const onCallEnd = async () => {
-      const messages = [...useTranscriptStore.getState().messages];
-      const callId = useVoiceAgentStore.getState().activeCallId;
+      await new Promise((r) => setTimeout(r, 500));
 
-      const savedMessages = messages.filter((m) => m.isFinal);
-      const savedCallId = callId;
+      const messages = [...useTranscriptStore.getState().messages];
+
+      const callId =
+        useVoiceAgentStore.getState().activeCallId ?? `local-${Date.now()}`;
 
       reset();
       clearTranscript();
       useBookingStore.getState().reset();
 
-      if (savedCallId && savedMessages.length > 0) {
-        try {
-          const title = await generateCallTitle(savedMessages);
-          const preview =
-            savedMessages.find((m) => m.role === "user")?.text ?? "";
+      if (callSavedRef.current) {
+        return;
+      }
 
-          useCallHistoryStore.getState().addCall({
-            id: savedCallId,
-            title,
-            date: new Date().toISOString(),
-            preview,
-          });
-        } catch (err) {
-          console.error("[CallEnd] Failed to save history:", err);
+      callSavedRef.current = true;
+
+      const finalMessages = messages.filter((m) => m.isFinal);
+
+      try {
+        if (finalMessages.length === 0) {
+          console.log("[CallEnd] Empty call — not saving to history");
+          return;
         }
+
+        const title = await generateCallTitle(finalMessages);
+        const preview =
+          finalMessages.find((m) => m.role === "user")?.text ?? "";
+
+        useCallHistoryStore.getState().addCall({
+          id: callId,
+          title,
+          date: new Date().toISOString(),
+          preview,
+        });
+      } catch {
+        const preview =
+          finalMessages.find((m) => m.role === "user")?.text ?? "";
+        useCallHistoryStore.getState().addCall({
+          id: callId,
+          title: "Voice conversation",
+          date: new Date().toISOString(),
+          preview,
+        });
       }
     };
 
@@ -150,9 +171,30 @@ export function useVapiSession() {
     };
 
     const onError = (error: unknown) => {
+      const vapiError = error as { type?: string; error?: { type?: string } };
+      if (vapiError?.type === "daily-error") {
+        console.log("[Vapi] Daily call ended");
+        return;
+      }
       const msg = error instanceof Error ? error.message : "Unknown Vapi error";
       setError(msg);
       console.error("[Vapi Error]", error);
+
+      if (callSavedRef.current) return;
+
+      const callId = useVoiceAgentStore.getState().activeCallId;
+      const messages = useTranscriptStore.getState().messages;
+
+      if (callId && messages.length > 0) {
+        callSavedRef.current = true;
+        const preview = messages.find((m) => m.role === "user")?.text ?? "";
+        useCallHistoryStore.getState().addCall({
+          id: callId,
+          title: "Interrupted call",
+          date: new Date().toISOString(),
+          preview,
+        });
+      }
     };
 
     vapi.on("call-start", onCallStart);

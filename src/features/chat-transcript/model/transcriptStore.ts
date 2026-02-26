@@ -17,7 +17,18 @@ export const useTranscriptStore = create<TranscriptStore>((set) => ({
   isBookingIntent: false,
 
   addMessage: (message) =>
-    set((state) => ({ messages: [...state.messages, message] })),
+    set((state) => {
+      const messages = [...state.messages];
+      const lastIndex = messages.length - 1;
+      const last = messages[lastIndex];
+
+      if (last && !last.isFinal && last.role === message.role) {
+        messages[lastIndex] = message;
+        return { messages };
+      }
+
+      return { messages: [...messages, message] };
+    }),
 
   updateLastPartial: (text, role) =>
     set((state) => {

@@ -19,7 +19,7 @@ export function VoiceControls() {
         onClick={isIdle ? startCall : stopCall}
         className={`
           relative rounded-full px-8 py-3 text-sm font-medium
-          transition-colors duration-200
+          transition-colors duration-200 cursor-pointer
           ${isIdle
             ? 'bg-[#72b63b] hover:bg-[#5a9e2f] text-white'
             : 'bg-[#232b38] hover:bg-[#2d3748] text-[#eeeeef] border border-white/10'
@@ -68,7 +68,7 @@ function AnimatedMuteButton({
         onClick={onToggle}
         className={`
           rounded-full w-11 h-11 flex items-center justify-center text-lg
-          transition-colors duration-200
+          transition-colors duration-200 cursor-pointer
           ${isMuted
             ? 'bg-red-950/60 border border-red-800/50 text-red-400'
             : 'bg-[#232b38] hover:bg-[#2d3748] text-[#eeeeef] border border-white/10'

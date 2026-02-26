@@ -26,6 +26,8 @@ export function VoiceOrb({ size = 400 }: { size?: number }) {
     levelRef.current = audioLevel;
   }, [audioLevel]);
 
+  const canvasSize = Math.round(size + 180 * 2);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -114,14 +116,20 @@ export function VoiceOrb({ size = 400 }: { size?: number }) {
 
   return (
     <div
-      className="relative flex items-center justify-center"
+      className="relative flex items-center justify-center overflow-visible"
       style={{ width: size, height: size }}
     >
       <canvas
         ref={canvasRef}
-        width={size}
-        height={size}
-        className="relative z-10 transition-transform duration-200"
+        width={canvasSize}
+        height={canvasSize}
+        className="absolute z-10 transition-transform duration-200 pointer-events-none"
+        style={{
+          width: canvasSize,
+          height: canvasSize,
+          left: -(canvasSize - size) / 2,
+          top: -(canvasSize - size) / 2,
+        }}
       />
 
       <div

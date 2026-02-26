@@ -117,7 +117,7 @@ export function AssistantLayout() {
             <div className="flex flex-col items-center justify-center w-full max-w-lg mx-auto lg:flex-1">
               <VoiceOrb size={280} />
               
-              <div className="mt-6 w-full flex justify-center">
+              <div className="mt-16 w-full flex justify-center">
                 <VoiceControls />
               </div>
 
