@@ -2,24 +2,28 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { History } from "lucide-react";
+import { History, BookOpen } from "lucide-react";
 import {
   VoiceOrb,
   VoiceControls,
   useVoiceAgentStore,
 } from "@/features/voice-agent";
-import { TranscriptPanel, useTranscriptStore } from "@/features/chat-transcript";
+import { TranscriptPanel } from "@/features/chat-transcript";
 import { BookingButton, BookingModal, EmailInput } from "@/features/booking";
 import {
   CallHistorySidebar,
   HistoryTranscriptView,
   useCallHistoryStore,
 } from "@/features/call-history";
+import {
+  KnowledgeBaseModal,
+  useKnowledgeBaseStore,
+} from "@/features/knowledge-base";
 
 export function AssistantLayout() {
   const { agentState, errorMessage } = useVoiceAgentStore();
   const { calls, selectedCallId, _hasHydrated } = useCallHistoryStore();
-  const { messages } = useTranscriptStore();
+  const { open: openKnowledgeBase } = useKnowledgeBaseStore();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const hasHistory = _hasHydrated && calls.length > 0;
@@ -55,6 +59,19 @@ export function AssistantLayout() {
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <motion.button
+            onClick={openKnowledgeBase}
+            whileTap={{ scale: 0.97 }}
+            className="flex items-center gap-1.5 sm:gap-2 rounded-full
+                       px-3 sm:px-5 h-9 sm:h-10 text-xs sm:text-sm font-medium
+                       transition-colors duration-200 shrink-0 whitespace-nowrap
+                       bg-[#232b38] hover:bg-[#2d3748] text-[#eeeeef]/60
+                       hover:text-[#eeeeef] border border-white/10 cursor-pointer"
+          >
+            <BookOpen size={16} className="text-[#eeeeef]/40" />
+            <span className="hidden sm:inline">Knowledge Base</span>
+            <span className="sm:hidden">KB</span>
+          </motion.button>
           <BookingButton />
           <AnimatePresence>
             {agentState !== "idle" && (
@@ -159,6 +176,7 @@ export function AssistantLayout() {
 
       <BookingModal />
       <EmailInput />
+      <KnowledgeBaseModal />
     </div>
   );
 }
